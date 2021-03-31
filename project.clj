@@ -33,7 +33,8 @@
                  [selmer "1.12.18"]
                  ; provided, because we will use only during dev, the final result will be compiled javascript
                  [org.clojure/clojurescript "1.10.764" :scope "provided"]
-                 [reagent "1.0.0"]]
+                 [reagent "1.0.0"]
+                 [cljs-ajax "0.8.1"]]
 
   :min-lein-version "2.0.0"
   
