@@ -3,5 +3,5 @@
             [reagent.dom :as dom]))
 
 (dom/render
-  [:h1 "Hello, Reagent"]
+  [:div#hello.content>h1 "Hello, Auto!"]
   (.getElementById js/document "content"))
