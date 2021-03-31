@@ -1,5 +1,7 @@
-(ns guestbook.core)
+(ns guestbook.core
+  (:require [reagent.core :as r]
+            [reagent.dom :as dom]))
 
-
-(-> (.getElementById js/document "content") (.-innerHTML)
-    (set! "Hello, World!! Auto-compile"))
+(dom/render
+  [:h1 "Hello, Reagent"]
+  (.getElementById js/document "content"))
