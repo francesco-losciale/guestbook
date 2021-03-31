@@ -33,6 +33,10 @@ Compile cljs
 
     lein cljsbuild once
 
+Or 
+
+    lein cljsbuild auto
+
 ## License
 
 Copyright © 2021 FIXME
