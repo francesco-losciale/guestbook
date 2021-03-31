@@ -1,13 +1,20 @@
 (ns guestbook.core
   (:require [reagent.core :as r]
             [reagent.dom :as dom]
-            [ajax.core :refer [GET POST]]))
+            [ajax.core :refer [GET POST]]
+            [clojure.string :as string]))
+
+(defn errors-component [errors id]
+  (when-let [error (id @errors)]
+    [:div.notification.is-danger (string/join error)]))
 
 (defn message-form []
-  (let [fields (r/atom {})]
+  (let [fields (r/atom {})
+        errors (r/atom nil)]
     (fn [] [:div
             [:div.field
              [:label.label {:for :name} "Name"]
+             [errors-component errors :name]
              [:input.input
               {:type :text
                :name :name
@@ -15,30 +22,37 @@
                                   assoc :name (-> % .-target .-value)) :value (:name @fields)}]]
             [:div.field
              [:label.label {:for :message} "Message"]
+             [errors-component errors :message]
              [:textarea.textarea
               {:name  :message
                :value (:message @fields) :on-change #(swap! fields assoc :message (-> % .-target .-value))}]]
             [:input.button.is-primary
-             {:type  :submit
-              :on-click #(send-message! fields)
-              :value "comment"}]
+             {:type     :submit
+              :on-click #(send-message! fields errors)
+              :value    "comment"}]
 
             [:p "Name: " (:name @fields)]                   ;TODO what's @
-            [:p "Message: " (:message @fields)]])))
+            [:p "Message: " (:message @fields)]
+            [errors-component errors :server-error]])))
 
 (defn home [] [:div.content>div.columns.is-centered>div.column.is-two-thirds
                [:div.columns>div.column [message-form]      ; message-form is in a vector, it isn't called
                 ]])
 
-(defn send-message! [fields]
+(defn send-message! [fields errors]
   (POST "/message"
-        {:params  @fields
+        {:params        @fields
          :headers
-                  {"Accept" "application/transit+json"
-                   "x-csrf-token" (.-value (.getElementById js/document "token"))}
+                        {"Accept"       "application/transit+json"
+                         "x-csrf-token" (.-value (.getElementById js/document "token"))
+                         }
          ; cljs-ajax uses status code in response to choose the handler to use...
-         :handler #(.log js/console (str "response:" %))
-         :error-handler #(.error js/console (str "error:" %))}))
+         :handler       (fn [r]
+                          (.log js/console (str "response:" r))
+                          (reset! errors nil))
+         :error-handler (fn [e]
+                          (.log js/console (str e))
+                          (reset! errors (-> e :response :errors)))}))
 
 (dom/render
   [home]
