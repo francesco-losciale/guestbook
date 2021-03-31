@@ -31,7 +31,7 @@
               :on-click #(send-message! fields errors)
               :value    "comment"}]
 
-            [:p "Name: " (:name @fields)]                   ;TODO what's @
+            [:p "Name: " (:name @fields)]                   ; what's @ ? it's called deref, it returns the atom's value
             [:p "Message: " (:message @fields)]
             [errors-component errors :server-error]])))
 
