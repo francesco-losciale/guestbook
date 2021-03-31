@@ -28,6 +28,11 @@ In the repl
 
     lein repl
 
+
+Compile cljs
+
+    lein cljsbuild once
+
 ## License
 
 Copyright © 2021 FIXME
