@@ -36,7 +36,9 @@
          :headers
                   {"Accept" "application/transit+json"
                    "x-csrf-token" (.-value (.getElementById js/document "token"))}
-         :handler #(.log js/console (str "response:" %)) :error-handler #(.error js/console (str "error:" %))}))
+         ; cljs-ajax uses status code in response to choose the handler to use...
+         :handler #(.log js/console (str "response:" %))
+         :error-handler #(.error js/console (str "error:" %))}))
 
 (dom/render
   [home]
