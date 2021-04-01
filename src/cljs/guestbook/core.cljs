@@ -2,7 +2,8 @@
   (:require [reagent.core :as r]
             [reagent.dom :as dom]
             [ajax.core :refer [GET POST]]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [guestbook.validation :refer [validate-message]]))
 
 (defn errors-component [errors id]
   (when-let [error (id @errors)]
@@ -40,19 +41,21 @@
                 ]])
 
 (defn send-message! [fields errors]
-  (POST "/message"
-        {:params        @fields
-         :headers
-                        {"Accept"       "application/transit+json"
-                         "x-csrf-token" (.-value (.getElementById js/document "token"))
-                         }
-         ; cljs-ajax uses status code in response to choose the handler to use...
-         :handler       (fn [r]
-                          (.log js/console (str "response:" r))
-                          (reset! errors nil))
-         :error-handler (fn [e]
-                          (.log js/console (str e))
-                          (reset! errors (-> e :response :errors)))}))
+  (if-let [validation-errors (validate-message @fields)]
+    (reset! errors validation-errors)
+    (POST "/message"
+          {:params        @fields
+           :headers
+                          {"Accept"       "application/transit+json"
+                           "x-csrf-token" (.-value (.getElementById js/document "token"))
+                           }
+           ; cljs-ajax uses status code in response to choose the handler to use...
+           :handler       (fn [r]
+                            (.log js/console (str "response:" r))
+                            (reset! errors nil))
+           :error-handler (fn [e]
+                            (.log js/console (str e))
+                            (reset! errors (-> e :response :errors)))})))
 
 (dom/render
   [home]

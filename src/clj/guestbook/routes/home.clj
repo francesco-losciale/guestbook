@@ -6,23 +6,10 @@
    [guestbook.middleware :as middleware]
    [ring.util.response]
    [ring.util.http-response :as response]
-   [struct.core :as st]))
+   [guestbook.validation :refer [validate-message]]))
 
 (defn about-page [request]
   (layout/render request "about.html"))
-
-(def message-schema
-  [[:name
-    st/required
-    st/string]
-   [:message
-    st/required
-    st/string
-    {:message  "message must contain at least 10 characters"
-     :validate (fn [msg] (>= (count msg) 10))}]])
-
-(defn validate-message [params]
-  (first (st/validate params message-schema)))
 
 (defn save-message! [{:keys [params]}]
   (if-let [errors (validate-message params)]
