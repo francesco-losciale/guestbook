@@ -36,9 +36,38 @@
             [:p "Message: " (:message @fields)]
             [errors-component errors :server-error]])))
 
-(defn home [] [:div.content>div.columns.is-centered>div.column.is-two-thirds
-               [:div.columns>div.column [message-form]      ; message-form is in a vector, it isn't called
-                ]])
+; The get-messages and the message-list functions have no direct coupling between them and are not aware of each other.
+; The Reagent atoms provide a way for any component to observe the current value in the model without having the
+; knowledge of how and when it’s populated.
+(defn home []
+  "The component calls the get-messages function on the messages when it is first mounted, then
+  returns it’s render function. Reagent will render home, including message-list, while the value
+  of messages is still nil. When the get- messages function finishes, the messages atom is reset with
+  the messages from the server and the message-list component is then repainted automatically."
+  (let [messages (r/atom nil)]
+    (get-messages messages)
+    (fn []
+      [:div.content>div.columns.is-centered>div.column.is-two-thirds
+       [:div.columns>div.column
+        [:h3 "Messages"]
+        [message-list messages]]
+       [:div.columns>div.column
+        [message-form]]])))
+
+(defn get-messages [messages]
+  (GET "/messages"                                          ; no need of csrf for GET
+       {:headers {"Accept" "application/transit+json"}
+        :handler #(reset! messages (:messages %))}))
+
+(defn message-list [messages]
+  (println messages)
+  [:ul.messages
+   (for [{:keys [timestamp message name]} @messages]
+     ^{:key timestamp}                                      ; li identifier
+     [:li
+      [:time (.toLocaleString timestamp)]
+      [:p message]
+      [:p " - " name]])])
 
 (defn send-message! [fields errors]
   (if-let [validation-errors (validate-message @fields)]
