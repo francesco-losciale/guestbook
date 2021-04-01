@@ -9,7 +9,7 @@
   (when-let [error (id @errors)]
     [:div.notification.is-danger (string/join error)]))
 
-(defn message-form []
+(defn message-form [messages]
   (let [fields (r/atom {})
         errors (r/atom nil)]
     (fn [] [:div
@@ -29,7 +29,7 @@
                :value (:message @fields) :on-change #(swap! fields assoc :message (-> % .-target .-value))}]]
             [:input.button.is-primary
              {:type     :submit
-              :on-click #(send-message! fields errors)
+              :on-click #(send-message! fields errors messages)
               :value    "comment"}]
 
             [:p "Name: " (:name @fields)]                   ; what's @ ? it's called deref, it returns the atom's value
@@ -52,7 +52,7 @@
         [:h3 "Messages"]
         [message-list messages]]
        [:div.columns>div.column
-        [message-form]]])))
+        [message-form messages]]])))
 
 (defn get-messages [messages]
   (GET "/messages"                                          ; no need of csrf for GET
@@ -69,7 +69,7 @@
       [:p message]
       [:p " - " name]])])
 
-(defn send-message! [fields errors]
+(defn send-message! [fields errors messages]
   (if-let [validation-errors (validate-message @fields)]
     (reset! errors validation-errors)
     (POST "/message"
@@ -81,7 +81,12 @@
            ; cljs-ajax uses status code in response to choose the handler to use...
            :handler       (fn [r]
                             (.log js/console (str "response:" r))
-                            (reset! errors nil))
+                            (swap! messages conj
+                                   (assoc @fields
+                                     :timestamp (js/Date.)))
+                            (reset! fields nil)
+                            (reset! errors nil)
+                            )
            :error-handler (fn [e]
                             (.log js/console (str e))
                             (reset! errors (-> e :response :errors)))})))
