@@ -92,7 +92,7 @@
           [message-form messages]]]))))
 
 (defn get-messages []
-  (GET "/messages"                                          ; no need of csrf for GET
+  (GET "/api/messages"                                          ; no need of csrf for GET
        {:headers {"Accept" "application/transit+json"}
         :handler #(rf/dispatch [:messages/set (:messages %)])}))
 
@@ -109,7 +109,7 @@
 (defn send-message! [fields errors]
   (if-let [validation-errors (validate-message @fields)]
     (reset! errors validation-errors)
-    (POST "/message"
+    (POST "/api/message"
           {:params        @fields
            :headers
                           {"Accept"       "application/transit+json"
