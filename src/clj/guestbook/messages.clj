@@ -14,4 +14,4 @@
     (db/save-message! message)))
 
 (defn message-list []
-  (response/ok {:messages (vec (db/get-messages))}))
+  {:messages (vec (db/get-messages))})
