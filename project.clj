@@ -35,7 +35,8 @@
                  [org.clojure/clojurescript "1.10.764" :scope "provided"]
                  [reagent "1.0.0"]
                  [cljs-ajax "0.8.1"]
-                 [com.github.seancorfield/next.jdbc "1.1.646"]]
+                 [com.github.seancorfield/next.jdbc "1.1.646"]
+                 [re-frame "1.1.2"]]
 
   :min-lein-version "2.0.0"
   
