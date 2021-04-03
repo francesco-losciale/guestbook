@@ -42,6 +42,39 @@
   :messages/list
   (fn [db _]
     (:messages/list db [])))
+;;;
+
+
+(defn send-message! [fields errors]
+  (if-let [validation-errors (validate-message @fields)]
+    (reset! errors validation-errors)
+    (POST "/api/message"
+          {:params        @fields
+           :headers
+                          {"Accept"       "application/transit+json"
+                           "x-csrf-token" (.-value (.getElementById js/document "token"))
+                           }
+           ; cljs-ajax uses status code in response to choose the handler to use...
+           :handler       (fn [r]
+                            (.log js/console (str "response:" r))
+                            (rf/dispatch
+                              [:message/add (assoc @fields :timestamp (js/Date.))])
+                            (reset! fields nil)
+                            (reset! errors nil)
+                            )
+           :error-handler (fn [e]
+                            (.log js/console (str e))
+                            (reset! errors (-> e :response :errors)))})))
+
+(defn message-list [messages]
+  (println messages)
+  [:ul.messages
+   (for [{:keys [timestamp message name]} @messages]
+     ^{:key timestamp}                                      ; li identifier
+     [:li
+      [:time (.toLocaleString timestamp)]
+      [:p message]
+      [:p " - " name]])])
 
 (defn message-form []
   (let [fields (r/atom {})
@@ -69,6 +102,11 @@
             [:p "Name: " (:name @fields)]                   ; what's @ ? it's called deref, it returns the atom's value
             [:p "Message: " (:message @fields)]
             [errors-component errors :server-error]])))
+
+(defn get-messages []
+  (GET "/api/messages"                                          ; no need of csrf for GET
+       {:headers {"Accept" "application/transit+json"}
+        :handler #(rf/dispatch [:messages/set (:messages %)])}))
 
 ; The get-messages and the message-list functions have no direct coupling between them and are not aware of each other.
 ; The Reagent atoms provide a way for any component to observe the current value in the model without having the
@@ -101,42 +139,8 @@
   (get-messages)
   (mount-components))
 
-(defn get-messages []
-  (GET "/api/messages"                                          ; no need of csrf for GET
-       {:headers {"Accept" "application/transit+json"}
-        :handler #(rf/dispatch [:messages/set (:messages %)])}))
-
-(defn message-list [messages]
-  (println messages)
-  [:ul.messages
-   (for [{:keys [timestamp message name]} @messages]
-     ^{:key timestamp}                                      ; li identifier
-     [:li
-      [:time (.toLocaleString timestamp)]
-      [:p message]
-      [:p " - " name]])])
-
-(defn send-message! [fields errors]
-  (if-let [validation-errors (validate-message @fields)]
-    (reset! errors validation-errors)
-    (POST "/api/message"
-          {:params        @fields
-           :headers
-                          {"Accept"       "application/transit+json"
-                           "x-csrf-token" (.-value (.getElementById js/document "token"))
-                           }
-           ; cljs-ajax uses status code in response to choose the handler to use...
-           :handler       (fn [r]
-                            (.log js/console (str "response:" r))
-                            (rf/dispatch
-                              [:message/add (assoc @fields :timestamp (js/Date.))])
-                            (reset! fields nil)
-                            (reset! errors nil)
-                            )
-           :error-handler (fn [e]
-                            (.log js/console (str e))
-                            (reset! errors (-> e :response :errors)))})))
-
 (dom/render
   [home]
   (.getElementById js/document "content"))
+
+(.log js/console "guestbook.core evaluated!")

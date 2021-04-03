@@ -37,6 +37,23 @@ Or
 
     lein cljsbuild auto
 
+
+To run shadow-cljs
+
+    npx shadow-cljs watch app
+
+Test using the REPL from the terminal
+
+    npx shadow-cljs cljs-repl app
+    cljs.user=> (js/alert "Hello from shadow-cljs")
+
+Or in Intellij (by default it opens the clj interpreter, you need to switch to cljs)
+
+    (shadow.cljs.devtools.api/repl :app)
+    cljs.user=> (js/alert "Hello from shadow-cljs")
+    :cljs/quit
+
+
 ## License
 
 Copyright © 2021 FIXME
