@@ -2,16 +2,24 @@
   (:require
     [guestbook.messages :as msg]
     [guestbook.middleware :as middleware]
-    [ring.util.http-response :as response]))
+    [ring.util.http-response :as response]
+    [reitit.swagger :as swagger]
+    [reitit.swagger-ui :as swagger-ui]))
 
 (defn service-routes []
   ["/api"
-   {:middleware [middleware/wrap-formats]}
+   {:middleware [middleware/wrap-formats]
+    :swagger    {:id ::api}}
+
+   ["" {:no-doc true}
+    ["/swagger.json"
+     {:get (swagger/create-swagger-handler)}]
+    ["/swagger-ui*"
+     {:get (swagger-ui/create-swagger-ui-handler {:url "/api/swagger.json"})}]]
    ["/messages"
     {:get
      (fn [_]
        (response/ok (msg/message-list)))}]
-
    ["/message"
     {:post
      (fn [{:keys [params]}]
