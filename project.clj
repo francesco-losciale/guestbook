@@ -72,8 +72,8 @@
                                  [binaryage/devtools "1.0.2"]]
                   :plugins      [[com.jakemccrary/lein-test-refresh "0.24.1"]
                                  [jonase/eastwood "0.3.5"]]
-                  
-                  :source-paths ["env/dev/clj"]
+
+                  :source-paths ["env/dev/clj" "env/dev/cljc" "env/dev/cljs"]
                   :resource-paths ["env/dev/resources"]
                   :repl-options {:init-ns user}
                   :injections [(require 'pjstadig.humane-test-output)
