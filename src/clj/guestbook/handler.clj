@@ -20,8 +20,7 @@
   (ring/ring-handler
     (ring/router
       [(home-routes)
-       (service-routes)]
-      {:reitit.middleware/transform dev/print-request-diffs})
+       (service-routes)])
     (ring/routes
       (ring/create-resource-handler
         {:path "/"})

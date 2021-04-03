@@ -20,6 +20,7 @@
                  [metosin/muuntaja "0.6.6"]
                  [metosin/reitit "0.5.12"]
                  [metosin/ring-http-response "0.9.1"]
+                 [metosin/ring-swagger-ui "2.2.10"]
                  [mount "0.1.16"]
                  [nrepl "0.6.0"]
                  [org.clojure/clojure "1.10.1"]
