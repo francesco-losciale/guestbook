@@ -13,6 +13,13 @@
     [reitit.ring.coercion :as coercion]
     [reitit.coercion.spec :as spec-coercion]))
 
+;As your middleware stack gets larger, it can become very hard to debug due to the sheer number of separate functions
+;report erratum • discuss
+;modifying every request map. Fortunately, reitit allows us to specify our mid- dleware as a vector so we can easily
+;inspect between each step.
+; use `reitit.ring.middleware.dev/print-request-diffs` ....
+; are we assuming that we need to debug? :(
+
 (defn service-routes []
   ["/api"
    {:middleware [;; query-params & form-params parameters/parameters-middleware
