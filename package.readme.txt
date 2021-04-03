@@ -1,0 +1,2 @@
+The xregexp module has been added because they are required by the Struct validation library,
+while the React modules will be used by Reagent.

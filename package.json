@@ -5,7 +5,6 @@
   "dependencies": {
     "react": "17.0.1",
     "react-dom": "17.0.1",
-    "xregexp": "^4.4.1",
-    "__comment1__": "The xregexp module has been added because they are required by the Struct validation library, while the React modules will be used by Reagent."
+    "xregexp": "^4.4.1"
   }
 }
