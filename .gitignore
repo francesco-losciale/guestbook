@@ -17,4 +17,8 @@ profiles.clj
 .idea/
 Capstanfile
 *.db
-*.iml
+*.iml.shadow-cljs/
+package-lock.json
+.shadow-cljs
+guestbook.iml
+
