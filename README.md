@@ -1,8 +1,10 @@
 # guestbook
 
-generated using Luminus version "3.57"
+# TODO
 
-FIXME
+- revisit chapter 5
+
+
 
 ## Prerequisites
 
