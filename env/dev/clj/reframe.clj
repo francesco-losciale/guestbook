@@ -1,4 +1,4 @@
-(ns test.reframe)
+(ns^{:skip-aot true} test.reframe)
 
 (require '[re-frame.core :as rf] :reload)
 
