@@ -169,6 +169,12 @@
   (when-let [error @(rf/subscribe [:form/error id])]
     [:div.notification.is-danger (string/join error)]))
 
+(defn reload-messages-button []
+  (let [loading? (rf/subscribe [:messages/loading?])]
+    [:button.button.is-info.is-fullwidth {:on-click #(rf/dispatch [:messages/load])
+                                          :disabled @loading?} (if @loading?
+                                                                 "Loading Messages" "Refresh Messages")]))
+
 (defn message-form []
   [:div
    [errors-component :server-error]
@@ -222,6 +228,8 @@
          [:div.columns>div.column
           [:h3 "Messages"]
           [message-list messages]]
+         [:div.columns>div.column
+          [reload-messages-button]]
          [:div.columns>div.column
           [message-form messages]]]))))
 
