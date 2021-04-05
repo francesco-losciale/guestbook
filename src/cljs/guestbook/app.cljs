@@ -4,4 +4,7 @@
 (enable-console-print!)
 (println "loading env/dev/cljs/guestbook/app.cljs...")
 (devtools/install!)
+
+;;ignore println statements in prod
+(set! *print-fn* (fn [& _]))
 (core/init!)
