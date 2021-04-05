@@ -4,6 +4,7 @@
             [ajax.core :refer [GET POST]]
             [clojure.string :as string]
             [guestbook.validation :refer [validate-message]]
+            [guestbook.websockets :as ws]
             [re-frame.core :as rf]))
 
 
@@ -17,7 +18,7 @@
 (rf/reg-event-fx
   :app/initialize
   (fn [_ _]
-    {:db {:messages/loading? true}
+    {:db       {:messages/loading? true}
      :dispatch [:messages/load]}))
 
 (rf/reg-event-fx
@@ -92,21 +93,15 @@
 (rf/reg-event-fx
   :message/send!
   (fn [{:keys [db]} [_ fields]]
-    (POST "/api/message"
-          {:format        :json
-           :headers
-                          {"Accept"       "application/transit+json"
-                           "x-csrf-token" (.-value (.getElementById js/document "token"))}
-           :params        fields
-           :handler       #(rf/dispatch
-                             [:message/add
-                              (-> fields
-                                  (assoc :timestamp (js/Date.)))])
-           :error-handler #(rf/dispatch
-                             [:form/set-server-errors
-                              (get-in % [:response :errors])])})
+    (ws/send-message! fields)
     {:db (dissoc db :form/server-errors)}))
 ;
+(defn handle-response! [response]
+  (if-let [errors (:errors response)]
+    (rf/dispatch [:form/set-server-errors errors])
+    (do
+      (rf/dispatch [:message/add response])
+      (rf/dispatch [:form/clear-fields response]))))
 
 ; events subscription
 
@@ -132,28 +127,6 @@
     (:messages/list db [])))
 
 ;;;
-
-
-;(defn send-message! [fields errors]
-;  (if-let [validation-errors (validate-message @fields)]
-;    (reset! errors validation-errors)
-;    (POST "/api/message"
-;          {:params        @fields
-;           :headers
-;                          {"Accept"       "application/transit+json"
-;                           "x-csrf-token" (.-value (.getElementById js/document "token"))
-;                           }
-;           ; cljs-ajax uses status code in response to choose the handler to use...
-;           :handler       (fn [r]
-;                            (.log js/console (str "response:" r))
-;                            (rf/dispatch
-;                              [:message/add (assoc @fields :timestamp (js/Date.))])
-;                            (reset! fields nil)
-;                            (reset! errors nil)
-;                            )
-;           :error-handler (fn [e]
-;                            (.log js/console (str e))
-;                            (reset! errors (-> e :response :errors)))})))
 
 (defn message-list [messages]
   (println messages)
@@ -182,29 +155,29 @@
     [:label.label {:for :name} "Name"]
     [errors-component :name]
     [:input.input
-     {:type :text
-      :name :name
+     {:type      :text
+      :name      :name
       :on-change #(rf/dispatch
                     [:form/set-field
                      :name
                      (.. % -target -value)])
-      :value @(rf/subscribe [:form/field :name])}]]
+      :value     @(rf/subscribe [:form/field :name])}]]
    [:div.field
     [:label.label {:for :message} "Message"]
     [errors-component :message]
     [:textarea.textarea
-     {:name :message
-      :value @(rf/subscribe [:form/field :message])
+     {:name      :message
+      :value     @(rf/subscribe [:form/field :message])
       :on-change #(rf/dispatch
                     [:form/set-field
                      :message
                      (.. % -target -value)])}]]
    [:input.button.is-primary
-    {:type :submit
+    {:type     :submit
      :disabled @(rf/subscribe [:form/validation-errors?])
      :on-click #(rf/dispatch [:message/send!
                               @(rf/subscribe [:form/fields])])
-     :value "comment"}]])
+     :value    "comment"}]])
 
 
 (defn get-messages []
@@ -242,7 +215,8 @@
 (defn init! []
   (.log js/console "Initializing App...")
   (rf/dispatch [:app/initialize])
-  (get-messages)
+  (ws/connect! (str "ws://" (.-host js/location) "/ws")
+               handle-response!)
   (mount-components))
 
 (dom/render
