@@ -10,11 +10,19 @@
                    (.-value (.getElementById js/document "token")) {:type           :auto
                                                                     :wrap-recv-evs? false}))
 
-(defn send! [message]
+(rf/reg-fx
+  :ws/send!
+  (fn [{:keys [message timeout callback-event]
+        :or {timeout 30000}}]
+    (if callback-event
+      (send! message timeout #(rf/dispatch (conj callback-event %)))
+      (send! message))))
+
+(defn send! [& args]
   (if-let [send-fn (:send-fn @socket)]
-    (send-fn message)
+    (apply send-fn args)
     (throw (ex-info "Couldn't send message, channel isn't open!"
-                    {:message message}))))
+                    {:message (first args)}))))
 
 (defmulti handle-message (fn [{:keys [id]} _]
                            id))
@@ -41,7 +49,8 @@
 (defn receive-message!
   [{:keys [id event] :as ws-message}]
   (do
-    (.log js/console "Event Received: " (pr-str event)) (handle-message ws-message event)))
+    (.log js/console "Event Received: " (pr-str event))
+    (handle-message ws-message event)))
 
 (defstate channel-router
           :start (sente/start-chsk-router!
@@ -49,20 +58,3 @@
                    #'receive-message!)
           :stop (when-let [stop-fn @channel-router]
                   (stop-fn)))
-;
-;(defn connect! [url receive-handler]
-;  (if-let [chan (js/WebSocket. url)]
-;    (do
-;      (.log js/console "Connected!")
-;      (set! (.-onmessage chan)
-;            #(->> %
-;                  .-data edn/read-string receive-handler))
-;      (reset! channel chan))
-;    (throw (ex-info "Websocket Connection Failed!"
-;                    {:url url}))))
-;
-;(defn send-message! [msg]
-;  (if-let [chan @channel]
-;    (.send chan (pr-str msg))
-;    (throw (ex-info "Couldn't send message, channel isn't open!"
-;                    {:message msg}))))
