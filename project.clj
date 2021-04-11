@@ -15,6 +15,7 @@
                  [clojure.java-time "0.3.2"]
                  [com.taoensso/sente "1.16.0"]
                  [conman "0.9.1"]
+                 [buddy "2.0.0"]
                  [cprop "0.1.17"]
                  [expound "0.8.7"]
                  [funcool/struct "1.4.0"]
