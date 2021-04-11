@@ -5,8 +5,6 @@
     [guestbook.middleware :as middleware]
     [ring.util.response]))
 
-(defn about-page [request]
-  (layout/render request "about.html"))
 
 (defn home-page [request]
   (layout/render
@@ -16,5 +14,4 @@
   [""
    {:middleware [middleware/wrap-csrf
                  middleware/wrap-formats]}
-   ["/" {:get home-page}]
-   ["/about" {:get about-page}]])
+   ["/" {:get home-page}]])
