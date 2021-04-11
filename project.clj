@@ -13,14 +13,12 @@
 
   :dependencies [[ch.qos.logback/logback-classic "1.2.3"]
                  [clojure.java-time "0.3.2"]
-                 [com.h2database/h2 "1.4.200"]
-                 ;
                  [com.taoensso/sente "1.16.0"]
-                 ;
                  [conman "0.9.1"]
                  [cprop "0.1.17"]
                  [expound "0.8.7"]
                  [funcool/struct "1.4.0"]
+                 [org.postgresql/postgresql "42.2.18"]
                  [luminus-http-kit "0.1.9"]
                  [luminus-migrations "0.7.1"]
                  [luminus-transit "0.1.2"]
