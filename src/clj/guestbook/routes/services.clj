@@ -2,6 +2,7 @@
   (:require
     [guestbook.messages :as msg]
     [guestbook.middleware :as middleware]
+    [spec-tools.data-spec :as ds]
     [guestbook.auth :as auth]
     [ring.util.http-response :as response]
     [reitit.ring.middleware.muuntaja :as muuntaja]
@@ -47,6 +48,22 @@
      {:get (swagger/create-swagger-handler)}]
     ["/swagger-ui*"
      {:get (swagger-ui/create-swagger-ui-handler {:url "/api/swagger.json"})}]]
+   ["/session"
+    {:get
+     {:responses
+      {200
+       {:body
+        {:session
+         {:identity
+          (ds/maybe
+            {:login string?
+             :created_at inst?})}}}}
+      :handler
+      (fn [{{:keys [identity]} :session}]
+        (response/ok {:session
+                      {:identity
+                       (not-empty
+                         (select-keys identity [:login :created_at]))}}))}}]
    ["/login"
     {:post {:parameters
             {:body
