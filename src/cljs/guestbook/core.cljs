@@ -185,14 +185,18 @@
 ;;;
 
 (defn message-list [messages]
-  (println messages)
   [:ul.messages
-   (for [{:keys [timestamp message name]} @messages]
-     ^{:key timestamp}                                      ; li identifier
+   (for [{:keys [timestamp message name author]} @messages]
+     ^{:key timestamp}
      [:li
-      [:time (.toLocaleString timestamp)]
-      [:p message]
-      [:p " - " name]])])
+      [:time (.toLocaleString timestamp)] [:p message]
+      [:p " - " name
+       ;; Add the author (e.g. <@username>)
+       " <"
+       (if author
+         (str "@" author)
+         [:span.is-italic "account not found"])
+       ">"]])])
 
 (defn errors-component [id]
   (when-let [error @(rf/subscribe [:form/error id])]
@@ -479,13 +483,13 @@
        [:div.container
         [:div.navbar-brand
          [:a.navbar-item
-          {:href "/"
+          {:href  "/"
            :style {:font-weight "bold"}}
           "guestbook"]
          [:span.navbar-burger.burger
           {:data-target "nav-menu"
-           :on-click #(swap! burger-active not)
-           :class (when @burger-active "is-active")}
+           :on-click    #(swap! burger-active not)
+           :class       (when @burger-active "is-active")}
           [:span]
           [:span]
           [:span]]]
