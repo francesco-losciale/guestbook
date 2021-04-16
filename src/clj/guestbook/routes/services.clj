@@ -145,28 +145,41 @@
       :handler
       (fn [_]
         (response/ok (msg/message-list)))}}]
+
    ["/message"
     {:post
      {:parameters
-      {:body                                                ;; Data Spec for Request body parameters
-       {:name    string?
+      {:body ;; Data Spec for Request body parameters
+       {:name string?
         :message string?}}
+
       :responses
       {200
        {:body map?}
+
        400
        {:body map?}
+
        500
        {:errors map?}}
+
       :handler
-      (fn [{{params :body} :parameters}]
+      ;
+      (fn [{{params :body} :parameters
+            {:keys [identity]} :session}]
         (try
-          (msg/save-message! params) (response/ok {:status :ok})
+          (->> (msg/save-message! identity params)
+               (assoc {:status :ok} :post)
+               (response/ok))
           (catch Exception e
-            (let [{id :guestbook/error-id errors :errors} (ex-data e)]
+            (let [{id     :guestbook/error-id
+                   errors :errors} (ex-data e)]
               (case id
                 :validation
-                (response/bad-request {:errors errors})     ;;else
+                (response/bad-request {:errors errors})
+                ;;else
                 (response/internal-server-error
                   {:errors
-                   {:server-error ["Failed to save message!"]}}))))))}}]])
+                   {:server-error ["Failed to save message!"]}}))))))
+      ;
+      }}]])
