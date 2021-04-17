@@ -198,9 +198,11 @@
          [:span.is-italic "account not found"])
        ">"]])])
 
-(defn errors-component [id]
+(defn errors-component [id & [message]]
   (when-let [error @(rf/subscribe [:form/error id])]
-    [:div.notification.is-danger (string/join error)]))
+    [:div.notification.is-danger (if message
+                                   message
+                                   (string/join error))]))
 
 (defn reload-messages-button []
   (let [loading? (rf/subscribe [:messages/loading?])]
@@ -242,6 +244,7 @@
 (defn message-form []
   [:div
    [errors-component :server-error]
+   [errors-component :unauthorized "Please log in before posting."]
    [:div.field
     [:label.label {:for :name} "Name"]
     [errors-component :name]
@@ -287,7 +290,20 @@
          [:div.columns>div.column
           [reload-messages-button]]
          [:div.columns>div.column
-          [message-form messages]]]))))
+          (case @(rf/subscribe [:auth/user-state])
+            :loading
+            [:div {:style {:width "5em"}}
+             [:progress.progress.is-dark.is-small {:max 100} "30%"]]
+
+            :authenticated
+            [message-form]
+
+            :anonymous
+            [:div.notification.is-clearfix
+             [:span "Log in or create an account to post a message!"]
+             [:div.buttons.is-pulled-right
+              [login-button]
+              [register-button]]])]]))))
 
 
 (rf/reg-event-db
