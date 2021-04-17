@@ -15,7 +15,9 @@
     [guestbook.session :as session]
     [mount.core :refer [defstate]]
     [taoensso.sente :as sente]
-    [taoensso.sente.server-adapters.http-kit :refer [get-sch-adapter]]))
+    [taoensso.sente.server-adapters.http-kit :refer [get-sch-adapter]]
+    [guestbook.auth :as auth]
+    [guestbook.auth.ws :refer [authorized?]]))
 ;
 
 ;
@@ -67,14 +69,27 @@
 
 (defn receive-message! [{:keys [id ?reply-fn ring-req]
                          :as   message}]
-  (log/debug "Got message with id: " id)
-  (let [reply-fn (or ?reply-fn (fn [_]))
-        session (session/read-session ring-req)
-        response (-> message
-                     (assoc :session session)
-                     handle-message)]
-    (when response
-      (reply-fn response))))
+  (case id
+    ; BEGIN do not apply authorization to system messages
+    :chsk/bad-package   (log/debug "Bad Package:\n" message)
+    :chsk/bad-event     (log/debug "Bad Event: \n" message)
+    :chsk/uidport-open  (log/trace (:event message))
+    :chsk/uidport-close (log/trace (:event message))
+    :chsk/ws-ping       nil
+    ; END do not apply authorization to system messages
+    ;; ELSE
+    (let [reply-fn (or ?reply-fn (fn [_]))
+          session (session/read-session ring-req)
+          message (-> message
+                      (assoc :session session))]
+      (log/debug "Got message with id: " id)
+      (if (authorized? auth/roles message)
+        (when-some [response (handle-message message)]
+          (reply-fn response))
+        (do
+          (log/info "Unauthorized message: " id)
+          (reply-fn {:message "You are not authorized to perform this action!"
+                     :errors {:unauthorized true}}))))))
 ;
 
 ;
