@@ -10,14 +10,6 @@
                    (.-value (.getElementById js/document "token")) {:type           :auto
                                                                     :wrap-recv-evs? false}))
 
-(rf/reg-fx
-  :ws/send!
-  (fn [{:keys [message timeout callback-event]
-        :or {timeout 30000}}]
-    (if callback-event
-      (send! message timeout #(rf/dispatch (conj callback-event %)))
-      (send! message))))
-
 (defn send! [& args]
   (if-let [send-fn (:send-fn @socket)]
     (apply send-fn args)
@@ -51,6 +43,14 @@
   (do
     (.log js/console "Event Received: " (pr-str event))
     (handle-message ws-message event)))
+
+(rf/reg-fx
+  :ws/send!
+  (fn [{:keys [message timeout callback-event]
+        :or {timeout 30000}}]
+    (if callback-event
+      (send! message timeout #(rf/dispatch (conj callback-event %)))
+      (send! message))))
 
 (defstate channel-router
           :start (sente/start-chsk-router!
