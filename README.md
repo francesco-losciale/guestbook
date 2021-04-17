@@ -3,7 +3,8 @@
 # TODO
 
 - revisit chapter 5
-
+- reader conditionals #? #?@ 
+- resolved var  #'var
 
 
 ## Prerequisites
