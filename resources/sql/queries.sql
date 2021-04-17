@@ -13,6 +13,13 @@ RETURNING *;
 SELECT * from posts
 -- END:posts
 
+-- START:author
+-- :name get-messages-by-author :? :*
+-- :doc selects all messages posted by a user
+SELECT * from posts
+WHERE author = :author
+--END:author
+
 -- START:users
 -- :name create-user!* :! :n
 -- :doc creates a new user with the provided login and hashed password

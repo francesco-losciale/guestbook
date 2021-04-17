@@ -158,20 +158,34 @@
                       (assoc :session nil)))}}]
 
    ["/messages"
-    {::auth/roles (auth/roles :messages/list)
-     :get
-     {:responses
-      {200
-       {:body ;; Data Spec for response body
-        {:messages
-         [{:id pos-int?
-           :name string?
-           :message string?
-           :timestamp inst?}]}}}
+    {::auth/roles (auth/roles :messages/list)}
+    ["" {:get
+         {:responses
+          {200
+           {:body ;; Data Spec for response body
+            {:messages
+             [{:id pos-int?
+               :name string?
+               :message string?
+               :timestamp inst?}]}}}
+          :handler
+          (fn [_]
+            (response/ok (msg/message-list)))}}]
 
-      :handler
-      (fn [_]
-        (response/ok (msg/message-list)))}}]
+    ["/by/:author"
+     {:get
+      {:parameters {:path {:author string?}}
+       :responses
+                   {200
+                    {:body ;; Data Spec for response body
+                     {:messages
+                      [{:id pos-int?
+                        :name string?
+                        :message string?
+                        :timestamp inst?}]}}}
+       :handler
+                   (fn [{{{:keys [author]} :path} :parameters}]
+                     (response/ok (msg/messages-by-author author)))}}]]
 
    ["/message"
     {::auth/roles (auth/roles :message/create!)
