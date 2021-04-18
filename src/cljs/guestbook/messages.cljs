@@ -10,6 +10,7 @@
   :messages/load
   (fn [{:keys [db]} _]
     {:db       (assoc db :messages/loading? true
+                         :messages/list nil
                          :messages/filter nil)
      :ajax/get {:url           "/api/messages"
                 :success-path  [:messages]
@@ -18,10 +19,11 @@
 (rf/reg-event-fx
   :messages/load-by-author
   (fn [{:keys [db]} [_ author]]
-    {:db (assoc db :messages/loading? true
-                   :messages/filter {:author author})
-     :ajax/get {:url (str "/api/messages/by/" author)
-                :success-path [:messages]
+    {:db       (assoc db :messages/loading? true
+                         :messages/list nil
+                         :messages/filter {:author author})
+     :ajax/get {:url           (str "/api/messages/by/" author)
+                :success-path  [:messages]
                 :success-event [:messages/set]}}))
 
 (rf/reg-event-db
@@ -40,6 +42,12 @@
   :messages/list
   (fn [db _]
     (:messages/list db [])))
+
+(defn message-list-placeholder []
+  [:ul.messages
+   [:li
+    [:p "Loading Messages..."] [:div {:style {:width "10em"}}
+                                [:progress.progress.is-dark {:max 100} "30%"]]]])
 
 (defn reload-messages-button []
   (let [loading? (rf/subscribe [:messages/loading?])]

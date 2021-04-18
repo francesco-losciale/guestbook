@@ -11,7 +11,7 @@
   (let [messages (rf/subscribe [:messages/list])]
     (fn []
       (if @(rf/subscribe [:messages/loading?])
-        [:div>div.row>div.span12>h3 "Loading Messages..."]
+        [messages/message-list-placeholder]
         [:div.content>div.columns.is-centered>div.column.is-two-thirds
          [:div.columns>div.column
           [:h3 "Messages"]
