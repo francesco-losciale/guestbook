@@ -46,11 +46,6 @@
       (rf/dispatch [:message/add response])
       (rf/dispatch [:form/clear-fields response]))))
 
-;(defn get-messages []
-;  (GET "/api/messages"                                      ; no need of csrf for GET
-;       {:headers {"Accept" "application/transit+json"}
-;        :handler #(rf/dispatch [:messages/set (:messages %)])}))
-
 (defn navbar []
   (let [burger-active (r/atom false)]
     (fn []
@@ -104,12 +99,6 @@
      [navbar]
      [page current-route]]))
 
-;(def routes ["/"
-;             ["" {:name ::home
-;                  :view home}]
-;             ["user/:user" {:name ::author
-;                            :view author}]])
-;
 (def router (rtf/router
               (app-routes)
               {:data {:coercion reitit-spec/coercion}}))
@@ -134,9 +123,3 @@
   (mount/start)
   (rf/dispatch [:app/initialize])
   (mount-components))
-
-;(dom/render
-;  [home]
-;  (.getElementById js/document "content"))
-;
-;(.log js/console "guestbook.core evaluated!")
