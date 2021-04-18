@@ -12,7 +12,8 @@
     [guestbook.auth :as auth]
     [guestbook.messages :as messages]
     [guestbook.ajax :as ajax]
-    [mount.core :as mount]))
+    [mount.core :as mount]
+    [reitit.frontend.controllers :as rtfc]))
 
 
 (rf/reg-event-db
@@ -32,12 +33,8 @@
 (rf/reg-event-fx
   :app/initialize
   (fn [_ _]
-    {:db {:messages/loading? true
-          :session/loading?  true}
-     :dispatch-n
-         [
-          [:session/load]
-          [:messages/load]]}))
+    {:db {:session/loading? true}
+     :dispatch [:session/load]}))
 
 (defn handle-response! [response]
   (if-let [errors (:errors response)]
@@ -108,7 +105,14 @@
     router
     (fn [new-match]
       (when new-match
-        (rf/dispatch [:router/navigated new-match])))
+        (let [{controllers :controllers}
+              @(rf/subscribe [:router/current-route])
+
+              new-match-with-controllers
+              (assoc new-match
+                :controllers
+                (rtfc/apply-controllers controllers new-match))]
+          (rf/dispatch [:router/navigated new-match-with-controllers]))))
     {:use-fragment false}))
 
 (defn ^:dev/after-load mount-components []
