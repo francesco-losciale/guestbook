@@ -32,3 +32,17 @@ VALUES (:login, :password)
 SELECT * FROM users
 WHERE login = :login
 -- END:users
+
+-- START:profile
+-- :name set-profile-for-user*  :<! :1
+-- :doc sets a profile map for the specified user
+UPDATE users
+SET profile = :profile
+where :login = login
+RETURNING *;
+
+-- :name get-user* :? :1
+-- :doc gets a user's publicly available information
+SELECT login, created_at, profile from users
+WHERE login = :login
+-- END:profile
