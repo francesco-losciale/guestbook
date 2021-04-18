@@ -9,9 +9,19 @@
 (rf/reg-event-fx
   :messages/load
   (fn [{:keys [db]} _]
-    {:db       (assoc db :messages/loading? true)
+    {:db       (assoc db :messages/loading? true
+                         :messages/filter nil)
      :ajax/get {:url           "/api/messages"
                 :success-path  [:messages]
+                :success-event [:messages/set]}}))
+
+(rf/reg-event-fx
+  :messages/load-by-author
+  (fn [{:keys [db]} [_ author]]
+    {:db (assoc db :messages/loading? true
+                   :messages/filter {:author author})
+     :ajax/get {:url (str "/api/messages/by/" author)
+                :success-path [:messages]
                 :success-event [:messages/set]}}))
 
 (rf/reg-event-db
@@ -30,14 +40,6 @@
   :messages/list
   (fn [db _]
     (:messages/list db [])))
-
-(rf/reg-event-fx
-  :messages/load-by-author
-  (fn [{:keys [db]} [_ author]]
-    {:db (assoc db :messages/loading? true)
-     :ajax/get {:url (str "/api/messages/by/" author)
-                :success-path [:messages]
-                :success-event [:messages/set]}}))
 
 (defn reload-messages-button []
   (let [loading? (rf/subscribe [:messages/loading?])]
@@ -60,6 +62,26 @@
          [:a {:href (str "/user/" author)} (str "@" author)]
          [:span.is-italic "account not found"])
        ">"]])])
+
+(defn add-message? [filter-map msg]
+  (every?
+    (fn [[k matcher]]
+      (let [v (get msg k)]
+        (cond
+          (set? matcher)
+          (matcher v)
+          (fn? matcher)
+          (matcher v)
+          :else
+          (= matcher v))))
+    filter-map))
+
+(rf/reg-event-db
+  :message/add
+  (fn [db [_ message]]
+    (if (add-message? (:messages/filter db) message)
+      (update db :messages/list conj message)
+      db)))
 
 (rf/reg-event-db
   :message/add
