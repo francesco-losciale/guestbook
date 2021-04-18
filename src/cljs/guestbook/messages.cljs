@@ -3,7 +3,8 @@
     [clojure.string :as string]
     [reagent.core :as r]
     [re-frame.core :as rf]
-    [guestbook.validation :refer [validate-message]]))
+    [guestbook.validation :refer [validate-message]]
+    [guestbook.components :refer [textarea-input text-input]]))
 
 
 (rf/reg-event-fx
@@ -175,37 +176,6 @@
     [:div.notification.is-danger (if message
                                    message
                                    (string/join error))]))
-
-(defn text-input [{val   :value
-                   attrs :attrs
-                   :keys [on-save]}]
-  (let [draft (r/atom nil)
-        value (r/track #(or @draft @val ""))]
-    (fn []
-      [:input.input
-       (merge attrs
-              {:type      :text
-               :on-focus  #(reset! draft (or @val ""))
-               :on-blur   (fn []
-                            (on-save (or @draft ""))
-                            (reset! draft nil))
-               :on-change #(reset! draft (.. % -target -value))
-               :value     @value})])))
-
-(defn textarea-input [{val   :value
-                       attrs :attrs
-                       :keys [on-save]}]
-  (let [draft (r/atom nil)
-        value (r/track #(or @draft @val ""))]
-    (fn []
-      [:textarea.textarea
-       (merge attrs
-              {:on-focus  #(reset! draft (or @val ""))
-               :on-blur   (fn []
-                            (on-save (or @draft ""))
-                            (reset! draft nil))
-               :on-change #(reset! draft (.. % -target -value))
-               :value     @value})])))
 
 (defn message-form []
   [:div
