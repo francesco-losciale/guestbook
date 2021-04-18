@@ -31,6 +31,14 @@
   (fn [db _]
     (:messages/list db [])))
 
+(rf/reg-event-fx
+  :messages/load-by-author
+  (fn [{:keys [db]} [_ author]]
+    {:db (assoc db :messages/loading? true)
+     :ajax/get {:url (str "/api/messages/by/" author)
+                :success-path [:messages]
+                :success-event [:messages/set]}}))
+
 (defn reload-messages-button []
   (let [loading? (rf/subscribe [:messages/loading?])]
     [:button.button.is-info.is-fullwidth
