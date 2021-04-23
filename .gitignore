@@ -22,3 +22,4 @@ package-lock.json
 .shadow-cljs
 guestbook.iml
 
+/postgres-data/
