@@ -55,6 +55,17 @@
                                       (-> e
                                           .-target
                                           .-files
-                                          (aget 0))))}]
+                                          (aget 0)))
+                                    (-> e
+                                        .-target
+                                        .-value
+                                        (set! "")))
+                       #_#_
+                           ;
+                           :on-change #(save-fn
+                                         (-> %
+                                             .-target
+                                             .-files
+                                             (aget 0)))}]
    [:span.file-cta
     [:span.file-label label-text]]])
