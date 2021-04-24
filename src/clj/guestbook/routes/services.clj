@@ -20,7 +20,9 @@
     [clojure.java.io :as io]
     [guestbook.db.core :as db]
     [reitit.ring.middleware.multipart :as multipart]
-    [guestbook.media :as media]))
+    [guestbook.media :as media]
+    [clojure.spec.alpha :as s]
+    [clojure.string :as string]))
 
 ;As your middleware stack gets larger, it can become very hard to debug due to the sheer number of separate functions
 ;report erratum • discuss
@@ -287,19 +289,58 @@
 
     ["/media/upload"
      {::auth/roles (auth/roles :media/upload)
-      :post {:parameters {:multipart {:avatar multipart/temp-file-part
-                                      :banner multipart/temp-file-part}}
-             :handler
-                         (fn [{{{:keys [avatar banner] :as mp} :multipart} :parameters
-                               {:keys [identity] :as session} :session
-                               :as req}] (response/ok
-                                           {:avatar (str "/api/media/" (media/insert-image-returning-name
-                                                                         (assoc avatar
-                                                                           :filename
-                                                                           (str (:login identity)
-                                                                                "_avatar")) {:owner (:login identity)}))
-                                            :banner (str "/api/media/" (media/insert-image-returning-name
-                                                                         (assoc banner
-                                                                           :filename
-                                                                           (str (:login identity) "_banner"))
-                                                                         {:owner (:login identity)}))}))}}]]])
+      :post
+                   {:parameters {:multipart (s/map-of keyword? multipart/temp-file-part)}
+                    :handler
+                                (fn [{{mp :multipart}    :parameters
+                                      {:keys [identity]} :session}]
+                                  (response/ok
+                                    (reduce-kv
+                                      (fn [acc name {:keys [size content-type] :as file-part}]
+                                        (cond
+                                          (> size (* 5 1024 1024))
+                                          (do
+                                            (log/error "File " name
+                                                       " exceeded max size of 5 MB. (size: " size ")")
+                                            (update acc :failed-uploads (fnil conj []) name))
+
+                                          (re-matches #"image/.*" content-type)
+                                          (-> acc
+                                              (update :files-uploaded conj name)
+                                              (assoc name
+                                                     (str "/api/media/"
+                                                          (cond
+                                                            (= name :avatar)
+                                                            (media/insert-image-returning-name
+                                                              (assoc file-part
+                                                                :filename
+                                                                (str (:login identity) "_avatar.png"))
+                                                              {:width 128
+                                                               :height 128
+                                                               :owner (:login identity)})
+
+                                                            (= name :banner)
+                                                            (media/insert-image-returning-name
+                                                              (assoc file-part
+                                                                :filename
+                                                                (str (:login identity) "_banner.png"))
+                                                              {:width 1200
+                                                               :height 400
+                                                               :owner (:login identity)})
+
+                                                            :else
+                                                            (media/insert-image-returning-name
+                                                              (update
+                                                                file-part
+                                                                :filename
+                                                                string/replace #"\.[^\.]+$" ".png")
+                                                              {:max-width 800
+                                                               :max-height 2000
+                                                               :owner (:login identity)})))))
+
+                                          :else
+                                          (do
+                                            (log/error "Unsupported file type" content-type "for file" name)
+                                            (update acc :failed-uploads (fnil conj []) name))))
+                                      {:files-uploaded []}
+                                      mp)))}}]]])
