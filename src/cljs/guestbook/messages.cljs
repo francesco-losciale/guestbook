@@ -189,10 +189,8 @@
    [errors-component :unauthorized "Please log in before posting."]
    [:div.field
     [:label.label {:for :name} "Name"]
-    [errors-component :name]
-    [text-input {:attrs   {:name :name}
-                 :value   (rf/subscribe [:form/field :name])
-                 :on-save #(rf/dispatch [:form/set-field :name %])}]]
+    (let [{:keys [login profile]} @(rf/subscribe [:auth/user])]
+      (:display-name profile login))]
    [:div.field
     [:label.label {:for :message} "Message"]
     [errors-component :message]

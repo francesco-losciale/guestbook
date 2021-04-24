@@ -201,8 +201,8 @@
                :name      string?
                :message   string?
                :timestamp inst?
-               :author (ds/maybe string?)
-               :avatar (ds/maybe string?)}]}}}
+               :author    (ds/maybe string?)
+               :avatar    (ds/maybe string?)}]}}}
           :handler
           (fn [_]
             (response/ok (msg/message-list)))}}]
@@ -227,8 +227,7 @@
      :post
                   {:parameters
                    {:body                                   ;; Data Spec for Request body parameters
-                    {:name    string?
-                     :message string?}}
+                    {:message string?}}
 
                    :responses
                    {200
@@ -317,18 +316,18 @@
                                                               (assoc file-part
                                                                 :filename
                                                                 (str (:login identity) "_avatar.png"))
-                                                              {:width 128
+                                                              {:width  128
                                                                :height 128
-                                                               :owner (:login identity)})
+                                                               :owner  (:login identity)})
 
                                                             (= name :banner)
                                                             (media/insert-image-returning-name
                                                               (assoc file-part
                                                                 :filename
                                                                 (str (:login identity) "_banner.png"))
-                                                              {:width 1200
+                                                              {:width  1200
                                                                :height 400
-                                                               :owner (:login identity)})
+                                                               :owner  (:login identity)})
 
                                                             :else
                                                             (media/insert-image-returning-name
@@ -336,9 +335,9 @@
                                                                 file-part
                                                                 :filename
                                                                 string/replace #"\.[^\.]+$" ".png")
-                                                              {:max-width 800
+                                                              {:max-width  800
                                                                :max-height 2000
-                                                               :owner (:login identity)})))))
+                                                               :owner      (:login identity)})))))
 
                                           :else
                                           (do
