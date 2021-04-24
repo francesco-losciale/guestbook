@@ -2,8 +2,10 @@
   (:require [guestbook.db.core :as db]
             [clojure.java.io :as io]
             [clojure.tools.logging :as log])
-  (:import
-    [java.io ByteArrayOutputStream]))
+  (:import [java.awt.image AffineTransformOp BufferedImage]
+           [java.io ByteArrayOutputStream]
+           java.awt.geom.AffineTransform
+           javax.imageio.ImageIO))
 
 (defn insert-image-returning-name [{:keys [tempfile filename]}
                                    {:keys [width height
@@ -42,7 +44,7 @@
 
                            transform-op
                            (AffineTransformOp.
-                             scale  AffineTransformOp/TYPE_BILINEAR)]
+                             scale AffineTransformOp/TYPE_BILINEAR)]
                        (.filter transform-op
                                 img
                                 (BufferedImage. (* ratio img-width)
@@ -50,10 +52,10 @@
                                                 (.getType img)))))]
     (ImageIO/write img-scaled "png" baos)
     (if (= 0
-           (db/save-file! {:name filename
-                           :data (.toByteArray baos)
+           (db/save-file! {:name  filename
+                           :data  (.toByteArray baos)
                            :owner owner
-                           :type "image/png"}))
+                           :type  "image/png"}))
       (do
         (log/error "Attempted to overwrite an image that you don't own!")
         (throw (ex-info "Attempted to overwrite an image that you don't own!"

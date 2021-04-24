@@ -1,6 +1,6 @@
 (ns guestbook.ajax
   (:require
-    [ajax.core :refer [GET]]
+    [ajax.core :refer [GET POST]]
     [re-frame.core :as rf]))
 
 (rf/reg-fx
