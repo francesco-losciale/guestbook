@@ -200,7 +200,9 @@
              [{:id        pos-int?
                :name      string?
                :message   string?
-               :timestamp inst?}]}}}
+               :timestamp inst?
+               :author (ds/maybe string?)
+               :avatar (ds/maybe string?)}]}}}
           :handler
           (fn [_]
             (response/ok (msg/message-list)))}}]

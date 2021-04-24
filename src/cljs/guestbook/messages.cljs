@@ -4,7 +4,7 @@
     [reagent.core :as r]
     [re-frame.core :as rf]
     [guestbook.validation :refer [validate-message]]
-    [guestbook.components :refer [textarea-input text-input]]))
+    [guestbook.components :refer [textarea-input text-input image]]))
 
 
 (rf/reg-event-fx
@@ -57,20 +57,26 @@
       :disabled @loading?} (if @loading?
                              "Loading Messages" "Refresh Messages")]))
 
+(defn message [{:keys [timestamp message name author avatar] :as m}]
+  [:article.media
+   [:figure.media-left
+    [image (or avatar "/img/avatar-default.png") 128 128]]
+   [:div.media-content>div.content
+    [:time (.toLocaleString timestamp)]
+    [:p message]
+    [:p " - " name
+     " <"
+     (if author
+       [:a {:href (str "/user/" author)} (str "@" author)]
+       [:span.is-italic "account not found"])
+     ">"]]])
+
 (defn message-list [messages]
   [:ul.messages
-   (for [{:keys [timestamp message name author]} @messages]
-     ^{:key timestamp}
+   (for [m @messages]
+     ^{:key (:timestamp m)}
      [:li
-      [:time (.toLocaleString timestamp)]
-      [:p message]
-      [:p " - " name
-       ;; Add the author (e.g. <@username>)
-       " <"
-       (if author
-         [:a {:href (str "/user/" author)} (str "@" author)]
-         [:span.is-italic "account not found"])
-       ">"]])])
+      [message m]])])
 
 (defn add-message? [filter-map msg]
   (every?
