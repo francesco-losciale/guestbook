@@ -31,6 +31,8 @@
    :auth/login           #{:any}
    :auth/logout          #{:any}
    :account/register     #{:any}
+   :media/get            #{:any}
+   :media/upload         #{:authenticated}
    :session/get          #{:any}
    :messages/list        #{:any}
    :swagger/swagger      #{:any}})

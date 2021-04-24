@@ -16,7 +16,11 @@
     [reitit.ring.coercion :as coercion]
     [reitit.coercion.spec :as spec-coercion]
     [guestbook.auth.ring :refer [wrap-authorized get-roles-from-match]]
-    [clojure.tools.logging :as log]))
+    [clojure.tools.logging :as log]
+    [clojure.java.io :as io]
+    [guestbook.db.core :as db]
+    [reitit.ring.middleware.multipart :as multipart]
+    [guestbook.media :as media]))
 
 ;As your middleware stack gets larger, it can become very hard to debug due to the sheer number of separate functions
 ;report erratum • discuss
@@ -151,6 +155,17 @@
                                 "Registration failed! User with login already exists!"})
                              (throw e))))))}}]
 
+   ["/media/:name"
+    {::auth/roles (auth/roles :media/get)
+     :get         {:parameters
+                            {:path {:name string?}}
+                   :handler (fn [{{{:keys [name]} :path} :parameters}]
+                              (if-let [{:keys [data type]}
+                                       (db/get-file {:name name})]
+                                (-> (io/input-stream data)
+                                    (response/ok)
+                                    (response/content-type type)) (response/not-found)))}}]
+
    ["/logout"
     {::auth/roles (auth/roles :auth/logout)
      :post        {:handler
@@ -268,4 +283,23 @@
                           (log/error e)
                           (response/internal-server-error
                             {:errors {:server-error
-                                      ["Failed to set profile!"]}}))))}}]]])
+                                      ["Failed to set profile!"]}}))))}}]
+
+    ["/media/upload"
+     {::auth/roles (auth/roles :media/upload)
+      :post {:parameters {:multipart {:avatar multipart/temp-file-part
+                                      :banner multipart/temp-file-part}}
+             :handler
+                         (fn [{{{:keys [avatar banner] :as mp} :multipart} :parameters
+                               {:keys [identity] :as session} :session
+                               :as req}] (response/ok
+                                           {:avatar (str "/api/media/" (media/insert-image-returning-name
+                                                                         (assoc avatar
+                                                                           :filename
+                                                                           (str (:login identity)
+                                                                                "_avatar")) {:owner (:login identity)}))
+                                            :banner (str "/api/media/" (media/insert-image-returning-name
+                                                                         (assoc banner
+                                                                           :filename
+                                                                           (str (:login identity) "_banner"))
+                                                                         {:owner (:login identity)}))}))}}]]])
